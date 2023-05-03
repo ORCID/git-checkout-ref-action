@@ -1,0 +1,35 @@
+name: 'git-checkout-ref'
+description: 'action to handle that issue with github action defaults are not always passed in and are not dynamic'
+
+inputs:
+  ref:
+    description: 'ref to use for checkouts'
+    required: false
+    default: "default"
+    type: string
+  default_branch:
+    # NOTE: injected in with ${{ github.event.repository.default_branch }}
+    description: 'default branch of the /calling/ project'
+    required: false
+    default: "main"
+    type: string
+
+outputs:
+  ref:
+    description: "checkout ref"
+    value: ${{ steps.ref.outputs.ref }}
+
+runs:
+  using: "composite"
+  steps:
+      # adjust the path so scripts in this repo can be run
+    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
+      shell: bash
+
+    - id: ref
+      run: git-checkout-ref.sh
+      shell: bash
+      # handle when empty input is provided
+      env:
+        GHA_REF: ${{ inputs.ref }}
+        GHA_DEFAULT_BRANCH: ${{ inputs.default_branch }}
